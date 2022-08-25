@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>учет расходов</title>
+</head>
+
+<body>
+  <section class="costapp">
+    <div class="container">
+      <div class="costapp_wrapper">
+        <h1 class="costapp_title">Учет моих расходов</h1>
+        <div class="app_flex">
+          <div class="input_where_wrap">
+            <label for="input_where">Куда было потрачено</label>
+            <input id="input_where" type="text" class="costapp__input" placeholder="Куда было потрачено">
+          </div>
+          <div class="input_howmuch_wrap">
+            <label for="input_howmuch">Сколько было потрачено</label>
+            <input id="input_howmuch" type="number" class="costapp__input" placeholder="Сколько было потрачено">
+          </div>
+          <button onclick="addExpense()" class="costapp-btn">Добавить</button>
+        </div>
+        <div class="render-items">
+          <p class="error"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <script src="./script.js"></script>
+</body>
+
+</html>
