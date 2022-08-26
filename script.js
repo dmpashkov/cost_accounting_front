@@ -7,7 +7,8 @@ let expenses = [];
 
 window.onload = () => {
   try {
-    if (document.querySelector('.costapp-btn') === null) {
+    if (document.querySelector('.costapp-btn') === null
+      || document.querySelector('.costapp__input') === null) {
       throw new Error;
     }
   } catch (err) {
@@ -33,6 +34,9 @@ const getAllData = async () => {
 
 const getError = (error) => {
   const showError = document.querySelector('.error');
+  if (showError === null) {
+    throw new Error;
+  }
   showError.innerHTML = error;
   showError.style.display = 'block'
   setTimeout(() => showError.style.display = 'none', 2000);
@@ -40,10 +44,12 @@ const getError = (error) => {
 
 const render = () => {
   const expensesCopy = [...expenses];
-  if (document.querySelector('.render-items') === null) {
-    return;
-  }
   const costappExpenses = document.querySelector('.render-items');
+
+  if (costappExpenses === null) {
+    throw new Error;
+  }
+
   while (costappExpenses.firstChild) {
     costappExpenses.removeChild(costappExpenses.firstChild)
   }
@@ -54,7 +60,7 @@ const render = () => {
   costappExpenses.appendChild(totalPrice)
 
   expensesCopy.forEach((elem, index) => {
-    const {_id, text, price, date} = elem;
+    const { _id, text, price, date } = elem;
     const expense = document.createElement('div');
     expense.id = `expense-${_id}`;
     expense.classList.add('render-item');
@@ -72,12 +78,14 @@ const render = () => {
     const editButton = document.createElement('button');
     const editIcon = document.createElement('img');
     editIcon.src = 'icons/edit_icon.png';
+    editIcon.alt = 'edit_icon';
     editButton.appendChild(editIcon);
     editButton.classList.add('edit-btn');
 
     const deleteButton = document.createElement('button');
     const deleteIcon = document.createElement('img');
     deleteIcon.src = 'icons/trash_icon.png';
+    deleteIcon.alt = 'trash_icon';
     deleteButton.appendChild(deleteIcon);
     deleteButton.classList.add('delete-button');
 
@@ -97,9 +105,16 @@ const render = () => {
 }
 
 const creatEditInput = (_id, text, price) => {
-  const task = document.getElementById(`expense-${_id}`);
-  if (!task.classList.contains('edit')) {
-    task.classList.add('edit');
+  const expense = document.getElementById(`expense-${_id}`);
+  if (expense === null) {
+    throw new Error;
+  }
+  if (expense.classList.contains('edit')) {
+    expense.classList.remove('edit');
+    expense.removeChild(expense.lastChild.previousElementSibling);
+    expense.removeChild(expense.lastChild);
+  } else {
+    expense.classList.add('edit');
     const editText = document.createElement("input");
     editText.type = "text";
     editText.value = text;
@@ -114,40 +129,38 @@ const creatEditInput = (_id, text, price) => {
     editPrice.onchange = () => {
       editExpense(_id, editPrice.value, text);
     }
-    task.appendChild(editText);
-    task.appendChild(editPrice);
-  } else {
-    task.classList.remove('edit');
-    task.removeChild(task.lastChild.previousElementSibling);
-    task.removeChild(task.lastChild);
+    expense.appendChild(editText);
+    expense.appendChild(editPrice);
   }
 }
 
 const addExpense = async () => {
   try {
-    const input = document.querySelector('.input_where_wrap .costapp__input');
-    const input2 = document.querySelector('.input_howmuch_wrap .costapp__input');
-
-    let inputText = input.value;
-    let inputPrice = input2.value;
-
-    if (inputText.trim() === '' || inputPrice.trim() === '') {
+    const inputTitle = document.querySelector('.input_title_wrap .costapp__input');
+    const inputPrice = document.querySelector('.input_price_wrap .costapp__input');
+    if (inputTitle === null
+      || inputPrice === null) {
+      throw new Error;
+    }
+    let text = inputTitle.value;
+    let price = inputPrice.value;
+    if (text.trim() === '' || price.trim() === '') {
       input.value = '';
       input2.value = '';
       return;
     }
-    const resp = await fetch(`${url}/new`, {
+    const resp = await fetch(`${url}/expenses/new`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
-        text: inputText,
-        price: inputPrice
+        text,
+        price
       })
     });
     const result = await resp.json();
     expenses.push(result);
-    input.value = '';
-    input2.value = '';
+    inputTitle.value = '';
+    inputPrice.value = '';
     render();
   } catch (err) {
     getError(err);
@@ -158,7 +171,7 @@ const addExpense = async () => {
 const editExpense = async (id, text, price) => {
   try {
     if (typeof price === 'number') {
-      const resp = await fetch(`${url}/update/${id}`, {
+      const resp = await fetch(`${url}/expenses/${id}/update`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({
@@ -167,13 +180,14 @@ const editExpense = async (id, text, price) => {
           _id: id
         })
       });
+      const result = await resp.json();
       expenses.forEach(element => {
         if (element._id === id) {
-          element.text = text;
+          element.text = result.text;
         }
       })
     } else {
-      const resp = await fetch(`${url}/update/${id}`, {
+      const resp = await fetch(`${url}/expenses/${id}/update`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({
@@ -182,9 +196,10 @@ const editExpense = async (id, text, price) => {
           _id: id
         })
       });
+      const result = await resp.json();
       expenses.forEach(element => {
         if (element._id === id) {
-          element.price = +text;
+          element.price = result.price;
         }
       })
     }
@@ -197,7 +212,7 @@ const editExpense = async (id, text, price) => {
 
 const deleteExpense = async (id) => {
   try {
-    const resp = await fetch(`${url}/delete/${id}`, {
+    const resp = await fetch(`${url}/expenses/${id}/delete`, {
       method: 'DELETE'
     });
     const result = await resp.json();
